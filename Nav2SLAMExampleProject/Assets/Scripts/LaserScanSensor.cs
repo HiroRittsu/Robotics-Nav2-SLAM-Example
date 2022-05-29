@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using RosMessageTypes.Sensor;
 using RosMessageTypes.Std;
@@ -11,12 +10,16 @@ using UnityEngine.Serialization;
 public class LaserScanSensor : MonoBehaviour
 {
     public string topic;
+
     [FormerlySerializedAs("TimeBetweenScansSeconds")]
     public double PublishPeriodSeconds = 0.1;
+
     public float RangeMetersMin = 0;
     public float RangeMetersMax = 1000;
     public float ScanAngleStartDegrees = -45;
+
     public float ScanAngleEndDegrees = 45;
+
     // Change the scan start and end by this amount after every publish
     public float ScanOffsetAfterPublish = 0f;
     public int NumMeasurementsPerScan = 10;
@@ -71,7 +74,8 @@ public class LaserScanSensor : MonoBehaviour
         var angleEndRos = -m_CurrentScanAngleEnd * Mathf.Deg2Rad;
         if (angleStartRos > angleEndRos)
         {
-            Debug.LogWarning("LaserScan was performed in a clockwise direction but ROS expects a counter-clockwise scan, flipping the ranges...");
+            Debug.LogWarning(
+                "LaserScan was performed in a clockwise direction but ROS expects a counter-clockwise scan, flipping the ranges...");
             var temp = angleEndRos;
             angleEndRos = angleStartRos;
             angleStartRos = temp;
@@ -95,21 +99,22 @@ public class LaserScanSensor : MonoBehaviour
             angle_max = angleEndRos,
             angle_increment = (angleEndRos - angleStartRos) / NumMeasurementsPerScan,
             time_increment = TimeBetweenMeasurementsSeconds,
-            scan_time = (float)PublishPeriodSeconds,
+            scan_time = (float) PublishPeriodSeconds,
             intensities = new float[ranges.Count],
             ranges = ranges.ToArray(),
         };
-        
+
         m_Ros.Publish(topic, msg);
 
         m_NumMeasurementsTaken = 0;
         ranges.Clear();
         isScanning = false;
-        var now = (float)Clock.time;
+        var now = (float) Clock.time;
         if (now > m_TimeNextScanSeconds)
         {
-            Debug.LogWarning($"Failed to complete scan started at {m_TimeLastScanBeganSeconds:F} before next scan was " +
-                             $"scheduled to start: {m_TimeNextScanSeconds:F}, rescheduling to now ({now:F})");
+            Debug.LogWarning(
+                $"Failed to complete scan started at {m_TimeLastScanBeganSeconds:F} before next scan was " +
+                $"scheduled to start: {m_TimeNextScanSeconds:F}, rescheduling to now ({now:F})");
             m_TimeNextScanSeconds = now;
         }
 
@@ -135,15 +140,16 @@ public class LaserScanSensor : MonoBehaviour
         }
 
 
-        var measurementsSoFar = TimeBetweenMeasurementsSeconds == 0 ? NumMeasurementsPerScan :
-            1 + Mathf.FloorToInt((float)(Clock.time - m_TimeLastScanBeganSeconds) / TimeBetweenMeasurementsSeconds);
+        var measurementsSoFar = TimeBetweenMeasurementsSeconds == 0
+            ? NumMeasurementsPerScan
+            : 1 + Mathf.FloorToInt((float) (Clock.time - m_TimeLastScanBeganSeconds) / TimeBetweenMeasurementsSeconds);
         if (measurementsSoFar > NumMeasurementsPerScan)
             measurementsSoFar = NumMeasurementsPerScan;
 
         var yawBaseDegrees = transform.rotation.eulerAngles.y;
         while (m_NumMeasurementsTaken < measurementsSoFar)
         {
-            var t = m_NumMeasurementsTaken / (float)NumMeasurementsPerScan;
+            var t = m_NumMeasurementsTaken / (float) NumMeasurementsPerScan;
             var yawSensorDegrees = Mathf.Lerp(m_CurrentScanAngleStart, m_CurrentScanAngleEnd, t);
             var yawDegrees = yawBaseDegrees + yawSensorDegrees;
             var directionVector = Quaternion.Euler(0f, yawDegrees, 0f) * Vector3.forward;
@@ -163,15 +169,16 @@ public class LaserScanSensor : MonoBehaviour
             // Even if Raycast didn't find a valid hit, we still count it as a measurement
             ++m_NumMeasurementsTaken;
         }
-        
+
         if (m_NumMeasurementsTaken >= NumMeasurementsPerScan)
         {
             if (m_NumMeasurementsTaken > NumMeasurementsPerScan)
             {
-                Debug.LogError($"LaserScan has {m_NumMeasurementsTaken} measurements but we expected {NumMeasurementsPerScan}");
+                Debug.LogError(
+                    $"LaserScan has {m_NumMeasurementsTaken} measurements but we expected {NumMeasurementsPerScan}");
             }
+
             EndScan();
         }
-
     }
 }

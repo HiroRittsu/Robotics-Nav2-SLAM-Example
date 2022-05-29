@@ -43,3 +43,8 @@ Many issues you may encounter can be solved by performing an internet search on 
 
 ## More from Unity Robotics
 Visit the [Unity Robotics Hub](https://github.com/Unity-Technologies/Unity-Robotics-Hub) for more robotics-related tutorials and examples. Join in on discussions on robotics or start your own in the official [Unity Robotics Forums](https://forum.unity.com/forums/robotics.623/). 
+
+
+```
+ros2 run tf2_ros static_transform_publisher 0 0 0 0 0 0 base_link base_scan
+```
